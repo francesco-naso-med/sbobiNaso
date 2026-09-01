@@ -136,9 +136,9 @@ def elabora(chunks: list[str], immagini: dict, opzioni: dict, barra, stato) -> s
 
 st.title("sbobiNaso 👃")
 st.markdown("""
-## In parole povere
+In parole povere...
 
-sbobiNaso è uno strumento che, utilizzando Gemini (l'AI di Google), prende una sbobina e
+sbobiNaso è uno strumento che, utilizzando **Gemini** (l'AI di Google), prende una sbobina e
 la rielabora come farebbe uno studente bravo e pazientissimo: frasi intere, paragrafi
 ordinati, un titolo diverso quando cambia argomento, elenchi dove il professore elencava,
 termini importanti in grassetto. Alla fine ti restituisce un documento Word con indice,
