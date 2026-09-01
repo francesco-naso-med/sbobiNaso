@@ -65,10 +65,10 @@ MESSAGGI = [
 ]
 
 MODELLI = [
-    ("gemini-3.5-flash-lite", "Gemini 3.5. Flash Lite (consigliato) — 500 pagine al giorno gratis),
-    ("gemini-3.1-flash-lite", "Gemini 3.1. Flash Lite (generazione precedente) — 500 pagine al giorno),
-    ("gemini-3.5-flash", "Gemini 3.5. Flash — più accurato, max 20 richieste al giorno gratis),
-    ("gemini-3.6-flash", "Gemini 3.6. Flash – (più recente), max 20 richieste al giorno gratis),
+    ("gemini-3.5-flash-lite", "Gemini 3.5. Flash Lite (consigliato) — 500 pagine al giorno gratis"),
+    ("gemini-3.1-flash-lite", "Gemini 3.1. Flash Lite (generazione precedente) — 500 pagine al giorno"),
+    ("gemini-3.5-flash", "Gemini 3.5. Flash — più accurato, max 20 richieste al giorno gratis"),
+    ("gemini-3.6-flash", "Gemini 3.6. Flash – (più recente), max 20 richieste al giorno gratis"),
 ]
 
 
