@@ -57,6 +57,11 @@ python3 dispensa.py -i sbobina.docx
 `--limit 3` per provare su pochi blocchi, `--resume` per riprendere, `--only-docx`
 per rigenerare il Word senza rielaborare, `--help` per tutto il resto.
 
+## Licenza
+
+[MIT](LICENSE). Usalo, modificalo, distribuiscilo, anche in progetti tuoi: basta
+tenere la nota di copyright.
+
 ---
 
 Fatto con il naso. Le dispense che produce portano la firma di sbobiNaso in fondo
