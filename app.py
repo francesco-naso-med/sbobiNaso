@@ -54,18 +54,21 @@ MESSAGGI = [
     "Leggo tutto 🤓",
     "Certo che 'sta sbobina l'hanno scritta coi piedi",
     "Tolgo gli «ehm» e le gasteme",
-    "Complimenti agli sbobinatori",
+    "Complimenti agli sbobinatori 😀",
     "Mo te l'aggiusto io",
+    "Coffee Break?!?!?!",
     "Rileggo un po', famm sta' tranquill",
-    "Metto i puntini sulle i",
-    "Ma davvero è in italiano?",
+    "😵‍💫😵‍💫😵‍💫😵‍💫",
+    "Sto mettendo i puntini sulle i...",
+    "La pazienza è la virtù dei forti - quindi aspitt",
+    "Ma chi l'ha scritta sta sbobina!?!?!?!?😭",
 ]
 
 MODELLI = [
-    ("gemini-3.5-flash-lite", "Flash Lite — 500 dispense/giorno gratis, consigliato"),
-    ("gemini-3.1-flash-lite", "Flash Lite (generazione precedente) — 500/giorno"),
-    ("gemini-3.5-flash", "Flash pieno — più accurato, solo 20 richieste/giorno"),
-    ("gemini-3.6-flash", "Flash pieno (più recente) — 20 richieste/giorno"),
+    ("gemini-3.5-flash-lite", "Gemini 3.5. Flash Lite (consigliato) — 500 pagine al giorno gratis),
+    ("gemini-3.1-flash-lite", "Gemini 3.1. Flash Lite (generazione precedente) — 500 pagine al giorno),
+    ("gemini-3.5-flash", "Gemini 3.5. Flash — più accurato, max 20 richieste al giorno gratis),
+    ("gemini-3.6-flash", "Gemini 3.6. Flash – (più recente), max 20 richieste al giorno gratis),
 ]
 
 
@@ -132,7 +135,21 @@ def elabora(chunks: list[str], immagini: dict, opzioni: dict, barra, stato) -> s
 # ---------------------------------------------------------------------------
 
 st.title("sbobiNaso 👃")
-st.caption("Tu dammi la sbobina, io ti do la dispensa")
+st.caption("## In parole povere
+
+sbobiNaso è uno strumento che, utilizzando Gemini (l'AI di Google), prende una sbobina e 
+la rielabora come farebbe uno studente bravo e pazientissimo: frasi intere, paragrafi ordinati, 
+un titolo diverso quando cambia argomento, elenchi dove il professore elencava,
+termini importanti in grassetto. Alla fine ti restituisce un documento Word con indice,
+capitoli e numeri di pagina, pronto da stampare.
+
+Una cosa importante: **non riassume**. I riassunti automatici tagliano, e poi va a finire che 
+all'esame ti chiedono proprio quello che è stato tagliato fuori dall'AI. E giustamente volano
+tutti i santi del calendario. Per questo, sbobiNaso non toglie contenuto, riscrive lo stesso 
+identico materiale in una forma più leggibile: il testo che ottieni è lungo quanto l'originale, 
+spesso di più.
+
+sbobiNaso è gratuito e lo sarà sempre. Se riscontri bug o c'è qualcosa che cambieresti, fammelo sapere!")
 
 for chiave, default in (("blocchi", []), ("docx", None), ("worker", None), ("impronta", None)):
     st.session_state.setdefault(chiave, default)
@@ -143,7 +160,7 @@ with st.sidebar:
         "Chiave Gemini", type="password", placeholder="Spara…",
         help="Gratuita su aistudio.google.com/apikey. Resta sul tuo computer.",
     )
-    st.caption("[Prendi la tua chiave](https://aistudio.google.com/apikey) — è gratis.")
+    st.caption("Se non hai la chiave, [fattela](https://aistudio.google.com/apikey) mo proprio — è gratis.")
 
     st.subheader("Modello")
     modello = st.selectbox("Modello", [m for m, _ in MODELLI],
@@ -154,7 +171,6 @@ with st.sidebar:
     capitoli = st.checkbox("Divisione in capitoli", value=True,
                            help="Una chiamata API in più: raggruppa le sezioni per argomento.")
     numeri = st.checkbox("Numeri di pagina", value=True)
-    st.caption(f"Piè di pagina: _{D.FIRMA}_")
 
     with st.expander("Impostazioni avanzate"):
         template = st.file_uploader(
@@ -166,7 +182,7 @@ with st.sidebar:
         pausa = st.slider("Pausa fra le chiamate (secondi)", 0.0, 10.0, 4.0, step=0.5,
                           help="Serve a non superare il limite di richieste al minuto.")
 
-sbobina = st.file_uploader("La sbobina grezza", type=["txt", "md", "docx", "pdf"],
+sbobina = st.file_uploader("Carica qui la sbobina", type=["txt", "md", "docx", "pdf"],
                            help="Da Word e PDF vengono estratte anche le immagini, "
                                 "che finiscono nella dispensa al punto giusto. Almeno spero")
 
