@@ -51,14 +51,14 @@ ANIMAZIONE = """
 
 # Ruotano durante l'elaborazione: ironiche ma non invadenti.
 MESSAGGI = [
-    "Leggo le prime righe…",
-    "Distinguo il docente dal rumore di fondo…",
-    "Tolgo gli «ehm» e lascio i dosaggi…",
-    "Rimetto in piedi i periodi…",
-    "Do un titolo a quello che merita un titolo…",
-    "Nessun dettaglio esce da questa stanza…",
-    "Trasformo l'elenco parlato in elenco vero…",
-    "Rielaboro, non riassumo…",
+    "Leggo tutto 🤓",
+    "Certo che 'sta sbobina l'hanno scritta coi piedi",
+    "Tolgo gli «ehm» e le gasteme",
+    "Complimenti agli sbobinatori",
+    "Mo te l'aggiusto io",
+    "Rileggo un po', famm sta' tranquill",
+    "Metto i puntini sulle i",
+    "Ma davvero è in italiano?",
 ]
 
 MODELLI = [
@@ -132,7 +132,7 @@ def elabora(chunks: list[str], immagini: dict, opzioni: dict, barra, stato) -> s
 # ---------------------------------------------------------------------------
 
 st.title("sbobiNaso 👃")
-st.caption("La sbobina entra grezza, esce dispensa. Senza riassumere niente.")
+st.caption("Tu dammi la sbobina, io ti do la dispensa")
 
 for chiave, default in (("blocchi", []), ("docx", None), ("worker", None), ("impronta", None)):
     st.session_state.setdefault(chiave, default)
@@ -140,7 +140,7 @@ for chiave, default in (("blocchi", []), ("docx", None), ("worker", None), ("imp
 with st.sidebar:
     st.subheader("Chiave API")
     api_key = st.text_input(
-        "Chiave Gemini", type="password", placeholder="AIza…",
+        "Chiave Gemini", type="password", placeholder="Spara…",
         help="Gratuita su aistudio.google.com/apikey. Resta sul tuo computer.",
     )
     st.caption("[Prendi la tua chiave](https://aistudio.google.com/apikey) — è gratis.")
@@ -168,7 +168,7 @@ with st.sidebar:
 
 sbobina = st.file_uploader("La sbobina grezza", type=["txt", "md", "docx", "pdf"],
                            help="Da Word e PDF vengono estratte anche le immagini, "
-                                "che finiscono nella dispensa al punto giusto.")
+                                "che finiscono nella dispensa al punto giusto. Almeno spero")
 
 if not sbobina:
     st.info("Carica la sbobina per iniziare: testo, Word o PDF, anche disordinato.")
@@ -248,4 +248,4 @@ if st.session_state.docx:
                    "In Word, se l'indice è vuoto: clic destro sull'indice → «Aggiorna campo».")
 
 st.divider()
-st.caption("sbobiNaso non riassume: rielabora. Ogni dettaglio della lezione resta dov'era.")
+st.caption("sbobiNaso")

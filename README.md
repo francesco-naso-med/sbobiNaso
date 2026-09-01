@@ -1,11 +1,12 @@
 # sbobiNaso 👃
 
-La sbobina entra grezza, esce dispensa. **Senza riassumere niente.**
+Tu dammi la sbobina, io ti do la dispensa. **Senza riassumere niente.**
 
-Prende la trascrizione di una lezione — anche disordinata, piena di "ehm" e di frasi
-a metà — e la trasforma in una dispensa in Word: italiano scritto, titoli, elenchi,
+SbobiNaso prende la trascrizione di una lezione — anche disordinata, piena di "ehm" e di frasi
+a metà — e la trasforma in una dispensa in Word: italiano scritto bene, titoli, elenchi,
 termini chiave in grassetto, indice, capitoli e numeri di pagina. Tutti i dettagli
-della lezione restano dov'erano: dosaggi, numeri, nomi, esempi, eccezioni.
+della lezione restano dov'erano: dosaggi, numeri, nomi, esempi, eccezioni. Puoi anche 
+aggiungere un template, altrimenti usi il mio :)
 
 Legge `.txt`, `.md`, `.docx` e `.pdf`. Da Word e PDF estrae anche **le immagini**, le
 fa guardare al modello e le rimette nella dispensa al punto giusto.
