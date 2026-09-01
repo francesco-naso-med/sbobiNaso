@@ -11,7 +11,6 @@ che a Google.
 from __future__ import annotations
 
 import io
-import os
 import re
 import tempfile
 import time
@@ -106,7 +105,8 @@ def costruisci_docx(markdown: str, template: str | None, opzioni: dict, worker) 
 
 def elabora(chunks: list[str], immagini: dict, opzioni: dict, barra, stato) -> str | None:
     """Elabora i blocchi mancanti. Ritorna il messaggio di stop, o None se finisce."""
-    worker = D.GeminiWorker(model=opzioni["modello"], fallbacks=list(D.FALLBACK_MODELS))
+    worker = D.GeminiWorker(model=opzioni["modello"], fallbacks=list(D.FALLBACK_MODELS),
+                            api_key=opzioni["api_key"])
     st.session_state.worker = worker
     fatti: list[str] = st.session_state.blocchi
 
@@ -198,8 +198,6 @@ if st.button(etichetta, type="primary", use_container_width=True, disabled=not a
         st.error("Serve la chiave API: la trovi nella barra laterale.")
         st.stop()
 
-    os.environ["GEMINI_API_KEY"] = api_key
-
     if template:                                       # override dalle avanzate
         tmp = tempfile.NamedTemporaryFile(suffix=".docx", delete=False)
         tmp.write(template.getvalue())
@@ -210,7 +208,7 @@ if st.button(etichetta, type="primary", use_container_width=True, disabled=not a
 
     opzioni = {"modello": modello, "indice": indice, "capitoli": capitoli,
                "numeri": numeri, "firma": D.FIRMA, "pausa": pausa,
-               "cartella_immagini": cartella_immagini}
+               "cartella_immagini": cartella_immagini, "api_key": api_key}
 
     st.markdown(ANIMAZIONE, unsafe_allow_html=True)   # scritta una volta: non riparte a ogni blocco
     barra = st.progress(fatti / len(chunks), text=f"{fatti} / {len(chunks)} blocchi")

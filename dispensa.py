@@ -231,14 +231,20 @@ def chunk_text(text: str, target: int = CHUNK_TARGET_CHARS,
 # ---------------------------------------------------------------------------
 
 
-def build_client():
-    """Client Gemini con la chiave presa dall'ambiente, mai dal codice."""
+def build_client(api_key: str | None = None):
+    """Client Gemini. La chiave arriva esplicitamente (una per sessione) oppure
+    dall'ambiente; mai dal codice.
+
+    Passarla esplicitamente è indispensabile quando più persone usano la stessa
+    istanza dell'app: scriverla in os.environ la renderebbe visibile a tutte le
+    sessioni che condividono il processo.
+    """
     try:
         from google import genai
     except ImportError:
         sys.exit("Manca la libreria ufficiale: pip install google-genai")
 
-    api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+    api_key = api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
     if not api_key:
         sys.exit(
             "Chiave API non trovata.\n"
@@ -276,12 +282,13 @@ def list_models() -> None:
 class GeminiWorker:
     model: str
     fallbacks: list[str]
+    api_key: str | None = None      # se assente si usa quella dell'ambiente
 
     def __post_init__(self) -> None:
         from google.genai import types
 
         self._types = types
-        self._client = build_client()
+        self._client = build_client(self.api_key)
         self._pending_fallbacks = list(self.fallbacks)
         self._config = types.GenerateContentConfig(
             system_instruction=SYSTEM_PROMPT,
