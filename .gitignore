@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.DS_Store
+~$*
+
+# Materiale personale: sbobine, dispense e immagini estratte non si pubblicano.
+testo.txt
+*.txt
+!requirements.txt
+dispensa_grezza*.md
+dispensa*.docx
+template_backup*.docx
+immagini/
+sbobiNaso.zip
+.Rhistory
+.Rapp.history
