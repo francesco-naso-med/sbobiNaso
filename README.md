@@ -32,7 +32,7 @@ streamlit run app.py
 ```
 
 Si apre una pagina nel browser. Incolla la chiave nella barra laterale, carica la
-sbobina, premi **Fiuta la sbobina** e aspetta. Alla fine scarichi il Word.
+sbobina, premi **Crea la dispensa** e aspetta. Alla fine scarichi il Word.
 
 Qualche indicazione:
 
@@ -64,5 +64,5 @@ tenere la nota di copyright.
 
 ---
 
-Fatto con il naso. Le dispense che produce portano la firma di sbobiNaso in fondo
+Le dispense che produce portano la firma di sbobiNaso in fondo
 a ogni pagina: è il modo in cui lo strumento resta gratis.

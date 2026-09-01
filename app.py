@@ -33,8 +33,8 @@ ANIMAZIONE = """
 </div>
 <style>
 .sn-box { display:flex; align-items:center; gap:.9rem; padding:.6rem 0 .2rem; }
-.sn-naso { font-size:2.1rem; line-height:1; animation:sn-fiuta 1.6s ease-in-out infinite; }
-@keyframes sn-fiuta {
+.sn-naso { font-size:2.1rem; line-height:1; animation:sn-ondeggia 1.6s ease-in-out infinite; }
+@keyframes sn-ondeggia {
   0%,100% { transform:translateX(0) rotate(0deg); }
   30%     { transform:translateX(6px) rotate(7deg); }
   60%     { transform:translateX(-3px) rotate(-4deg); }
@@ -52,14 +52,14 @@ ANIMAZIONE = """
 
 # Ruotano durante l'elaborazione: ironiche ma non invadenti.
 MESSAGGI = [
-    "Fiuto le prime righe…",
+    "Leggo le prime righe…",
     "Distinguo il docente dal rumore di fondo…",
     "Tolgo gli «ehm» e lascio i dosaggi…",
     "Rimetto in piedi i periodi…",
     "Do un titolo a quello che merita un titolo…",
     "Nessun dettaglio esce da questa stanza…",
     "Trasformo l'elenco parlato in elenco vero…",
-    "Il naso non riassume: rielabora…",
+    "Rielaboro, non riassumo…",
 ]
 
 MODELLI = [
@@ -171,8 +171,7 @@ sbobina = st.file_uploader("La sbobina grezza", type=["txt", "md", "docx", "pdf"
                                 "che finiscono nella dispensa al punto giusto.")
 
 if not sbobina:
-    st.info("Carica la sbobina per iniziare. Un file di testo, anche disordinato: "
-            "il naso ci si raccapezza.")
+    st.info("Carica la sbobina per iniziare: testo, Word o PDF, anche disordinato.")
     st.stop()
 
 testo, immagini_str, cartella_immagini = leggi_sorgente(sbobina.name, sbobina.getvalue())
@@ -193,7 +192,7 @@ fatti = len(st.session_state.blocchi)
 if fatti:
     st.progress(fatti / len(chunks), text=f"{fatti} / {len(chunks)} blocchi già elaborati")
 
-etichetta = "👃 Fiuta la sbobina" if not fatti else "👃 Riprendi da dove eravamo"
+etichetta = "Crea la dispensa" if not fatti else "Riprendi da dove eravamo"
 if st.button(etichetta, type="primary", use_container_width=True, disabled=not api_key):
     if not api_key:
         st.error("Serve la chiave API: la trovi nella barra laterale.")
@@ -236,7 +235,7 @@ if st.button(etichetta, type="primary", use_container_width=True, disabled=not a
                    f"{problema}\n\nQuello che c'è è scaricabile qui sotto, e il pulsante "
                    "riprende da questo punto senza rifare nulla.")
     else:
-        st.success("Dispensa pronta. Il naso ha fatto il suo dovere.")
+        st.success("Dispensa pronta.")
 
 if st.session_state.docx:
     nome = Path(sbobina.name).stem
