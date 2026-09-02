@@ -155,6 +155,46 @@ CONTEXT_TEMPLATE = """### CONTESTO — FINALE DEL BLOCCO PRECEDENTE (già scritt
 
 """
 
+PROMPT_RIASSUNTO = """Sei un assistente accademico che prepara appunti di studio a \
+partire dalla trascrizione (sbobina) di una lezione universitaria di Medicina.
+
+Ricevi una porzione di lezione e ne estrai il contenuto essenziale in forma di appunti \
+strutturati. Qui SI PUÒ condensare: è quello che ti viene chiesto.
+
+COSA TENERE SEMPRE, anche riassumendo:
+- Definizioni, classificazioni e criteri diagnostici.
+- Numeri che contano: dosaggi, valori soglia, percentuali, tempi, articoli di legge.
+- Nomi propri: farmaci, patologie, eponimi, leggi, autori.
+- Le eccezioni e le condizioni ("tranne se…", "solo quando…"), che sono ciò che si \
+dimentica per primo e ciò che viene chiesto all'esame.
+
+COSA TOGLIERE:
+- Ripetizioni, esempi ridondanti, aneddoti, digressioni, riferimenti d'aula.
+- Il parlato: intercalari, false partenze, frasi di raccordo.
+
+FORMATO (Markdown essenziale):
+- `## Titolo` per gli argomenti, `- voce` per gli elenchi, `**testo**` per i termini chiave.
+- Preferisci gli elenchi al testo discorsivo: sono appunti, non un tema.
+- Nessuna introduzione, nessuna conclusione, nessun commento tuo.
+
+Se incontri segnaposto come [[IMG:3]], riportali invariati solo quando l'immagine \
+contiene informazione che serve a capire (uno schema, una tabella, un reperto); \
+altrimenti omettili."""
+
+PROMPT_CONSOLIDA = """Ricevi gli appunti di una lezione universitaria di Medicina, \
+estratti pezzo per pezzo e quindi frammentati e ripetitivi.
+
+Fondili in un unico documento di studio coerente:
+- Riunisci sotto un solo titolo quello che parla dello stesso argomento, anche se \
+compare in punti lontani.
+- Elimina le ripetizioni, ma MAI a costo di perdere un dato: numeri, dosaggi, valori \
+soglia, articoli di legge, nomi di farmaci ed eccezioni vanno conservati tutti.
+- Dai una gerarchia sensata: `## Argomento` e `### Sottoargomento`.
+- Mantieni gli elenchi puntati: è materiale da ripasso.
+- Conserva i segnaposto [[IMG:n]] che trovi, nel punto pertinente.
+
+Rispondi solo con il documento finale, senza premesse."""
+
 CAPITOLI_PROMPT = """Ricevi l'elenco ordinato dei titoli delle sezioni di una dispensa \
 universitaria. Raggruppa le sezioni CONSECUTIVE in capitoli tematicamente coerenti.
 
@@ -174,6 +214,17 @@ Rispondi SOLO con un array JSON di oggetti con questi campi:
 
 Esempio: [{"titolo": "Fondamenti normativi", "prima_sezione": 1}, \
 {"titolo": "Il consenso informato", "prima_sezione": 5}]"""
+
+
+# Le due modalità: prompt e dimensione dei blocchi vanno insieme.
+# Rielaborare vuole blocchi corti (più contesto = più tentazione di compattare);
+# riassumere vuole blocchi grandi, perché comprimere è lo scopo e serve visione d'insieme.
+MODALITA = {
+    "dispensa": {"prompt": SYSTEM_PROMPT, "chunk": CHUNK_TARGET_CHARS, "consolida": False},
+    "riassunto": {"prompt": PROMPT_RIASSUNTO, "chunk": 12000, "consolida": True},
+}
+
+CONSOLIDA_MAX_CHARS = 60000    # oltre, la fusione finale si fa a gruppi
 
 
 # ---------------------------------------------------------------------------
@@ -283,6 +334,7 @@ class GeminiWorker:
     model: str
     fallbacks: list[str]
     api_key: str | None = None      # se assente si usa quella dell'ambiente
+    system_prompt: str = SYSTEM_PROMPT
 
     def __post_init__(self) -> None:
         from google.genai import types
@@ -291,7 +343,7 @@ class GeminiWorker:
         self._client = build_client(self.api_key)
         self._pending_fallbacks = list(self.fallbacks)
         self._config = types.GenerateContentConfig(
-            system_instruction=SYSTEM_PROMPT,
+            system_instruction=self.system_prompt,
             temperature=TEMPERATURE,
             # Contenuto medico-accademico: senza questo, descrizioni di patologie,
             # farmaci e dosaggi possono far scattare i filtri di sicurezza.
@@ -328,6 +380,35 @@ class GeminiWorker:
         return True
 
     # -- chiamata con retry ----------------------------------------------------
+
+    def _una_fusione(self, testo: str) -> str:
+        config = self._types.GenerateContentConfig(
+            system_instruction=PROMPT_CONSOLIDA,
+            temperature=TEMPERATURE,
+            safety_settings=self._config.safety_settings,
+        )
+        response = self._client.models.generate_content(
+            model=self.model, contents=testo, config=config
+        )
+        return (response.text or "").strip()
+
+    def consolida(self, appunti: str) -> str:
+        """Secondo passaggio del riassunto: da 166 mini-riassunti a un documento solo.
+
+        Senza questo, riassumere blocco per blocco produce una fila di frammenti
+        indipendenti, non un riassunto. Se il materiale non entra in una chiamata
+        sola si fonde a gruppi, e poi si fondono i gruppi.
+        """
+        if len(appunti) <= CONSOLIDA_MAX_CHARS:
+            return self._una_fusione(appunti) or appunti
+
+        gruppi = chunk_text(appunti, target=CONSOLIDA_MAX_CHARS, hard_max=CONSOLIDA_MAX_CHARS * 2)
+        fusi = []
+        for i, gruppo in enumerate(gruppi, 1):
+            tqdm.write(f"  🧩 Fusione {i}/{len(gruppi)}")
+            fusi.append(self._una_fusione(gruppo) or gruppo)
+        unito = "\n\n".join(fusi)
+        return self._una_fusione(unito) or unito if len(unito) <= CONSOLIDA_MAX_CHARS else unito
 
     def raggruppa_capitoli(self, titoli: list[str]) -> dict[int, str]:
         """Una sola chiamata: restituisce {numero_sezione: titolo_capitolo}."""
@@ -817,8 +898,12 @@ def parse_args() -> argparse.Namespace:
                     help="rotazione completa dei modelli, separati da virgola: si passa al "
                          "successivo quando uno esaurisce la quota giornaliera "
                          f"(default: {MODEL_NAME},{','.join(FALLBACK_MODELS)})")
-    ap.add_argument("-c", "--chunk-chars", type=int, default=CHUNK_TARGET_CHARS,
-                    help=f"caratteri per blocco (default: {CHUNK_TARGET_CHARS})")
+    ap.add_argument("--modalita", choices=sorted(MODALITA), default="dispensa",
+                    help="dispensa = rielabora senza tagliare nulla; "
+                         "riassunto = condensa, con un secondo passaggio che fonde il tutto "
+                         "(default: dispensa)")
+    ap.add_argument("-c", "--chunk-chars", type=int, default=None,
+                    help="caratteri per blocco (default: 3500 per la dispensa, 12000 per il riassunto)")
     ap.add_argument("--raw", default=RAW_MARKDOWN_FILE,
                     help=f"backup Markdown incrementale (default: {RAW_MARKDOWN_FILE})")
     ap.add_argument("--resume", action="store_true",
@@ -852,7 +937,19 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    modalita = MODALITA[args.modalita]
+
+    if args.chunk_chars is None:
+        args.chunk_chars = modalita["chunk"]
+    # Le due modalità non devono pestarsi i piedi sugli stessi file.
+    if args.modalita == "riassunto":
+        if args.raw == RAW_MARKDOWN_FILE:
+            args.raw = "riassunto_grezzo.md"
+        if args.output == OUTPUT_FILE:
+            args.output = "riassunto.docx"
+
     raw_path = Path(args.raw)
+    consolidato_path = raw_path.with_name(f"{raw_path.stem}_consolidato.md")
 
     if args.list_models:
         list_models()
@@ -866,7 +963,9 @@ def main() -> None:
     if args.only_docx:
         if not raw_path.is_file() or not raw_path.read_text(encoding="utf-8").strip():
             sys.exit(f"Nessun backup da convertire: '{raw_path}' non esiste o e' vuoto.")
-        build_docx(raw_path.read_text(encoding="utf-8"), args)
+        sorgente_md = (consolidato_path if modalita["consolida"] and consolidato_path.is_file()
+                       else raw_path)
+        build_docx(sorgente_md.read_text(encoding="utf-8"), args)
         return
 
     source = Path(args.input)
@@ -942,7 +1041,8 @@ def main() -> None:
         primary, fallbacks = rotation[0], rotation[1:]
     else:
         primary, fallbacks = args.model, list(FALLBACK_MODELS)
-    worker = GeminiWorker(model=primary, fallbacks=fallbacks)
+    worker = GeminiWorker(model=primary, fallbacks=fallbacks,
+                          system_prompt=modalita["prompt"])
     stopped_at: int | None = None
 
     last = min(start + args.limit, len(chunks)) if args.limit else len(chunks)
@@ -965,7 +1065,19 @@ def main() -> None:
             if args.sleep and i + 1 < last:
                 time.sleep(args.sleep)
 
-    build_docx(raw_path.read_text(encoding="utf-8"), args, worker=worker)
+    markdown = raw_path.read_text(encoding="utf-8")
+
+    if modalita["consolida"] and stopped_at is None:
+        print("🧩 Secondo passaggio: fondo gli appunti in un documento unico…")
+        try:
+            markdown = worker.consolida(markdown)
+            consolidato_path.write_text(markdown, encoding="utf-8")
+            print(f"   Riassunto consolidato in '{consolidato_path}'")
+        except Exception as err:  # noqa: BLE001 - meglio i frammenti che niente
+            print(f"   ⚠️  Fusione non riuscita ({err}): impagino gli appunti grezzi.")
+            markdown = raw_path.read_text(encoding="utf-8")
+
+    build_docx(markdown, args, worker=worker)
     print(f"   Backup Markdown: '{raw_path}'")
 
     if stopped_at is None and last < len(chunks):

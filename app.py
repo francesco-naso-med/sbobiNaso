@@ -109,7 +109,8 @@ def costruisci_docx(markdown: str, template: str | None, opzioni: dict, worker) 
 def elabora(chunks: list[str], immagini: dict, opzioni: dict, barra, stato) -> str | None:
     """Elabora i blocchi mancanti. Ritorna il messaggio di stop, o None se finisce."""
     worker = D.GeminiWorker(model=opzioni["modello"], fallbacks=list(D.FALLBACK_MODELS),
-                            api_key=opzioni["api_key"])
+                            api_key=opzioni["api_key"],
+                            system_prompt=D.MODALITA[opzioni["modalita"]]["prompt"])
     st.session_state.worker = worker
     fatti: list[str] = st.session_state.blocchi
 
@@ -165,6 +166,15 @@ with st.sidebar:
     )
     st.caption("Se non hai la chiave, [fattela](https://aistudio.google.com/apikey) mo proprio — è gratis.")
 
+    st.subheader("Cosa vuoi ottenere")
+    modalita = st.radio(
+        "Modalità", ["dispensa", "riassunto"], label_visibility="collapsed",
+        format_func=lambda m: ("Dispensa completa — non taglia niente" if m == "dispensa"
+                               else "Riassunto — appunti condensati"),
+        help="La dispensa riscrive tutta la lezione senza perdere dettagli. Il riassunto "
+             "condensa, e alla fine fonde gli appunti in un documento unico.",
+    )
+
     st.subheader("Modello")
     modello = st.selectbox("Modello", [m for m, _ in MODELLI],
                            format_func=lambda m: dict(MODELLI)[m], label_visibility="collapsed")
@@ -180,7 +190,8 @@ with st.sidebar:
             "Template Word personale", type=["docx"],
             help="Da qui vengono font, margini e stili. Senza, si usa il template di sbobiNaso.",
         )
-        chunk = st.slider("Caratteri per blocco", 1500, 8000, D.CHUNK_TARGET_CHARS, step=250,
+        chunk = st.slider("Caratteri per blocco", 1500, 16000,
+                          D.MODALITA[modalita]["chunk"], step=250,
                           help="Blocchi più corti = più fedeltà ai dettagli, più chiamate.")
         pausa = st.slider("Pausa fra le chiamate (secondi)", 0.0, 10.0, 4.0, step=0.5,
                           help="Serve a non superare il limite di richieste al minuto.")
@@ -197,7 +208,7 @@ testo, immagini_str, cartella_immagini = leggi_sorgente(sbobina.name, sbobina.ge
 immagini = {int(n): Path(f) for n, f in immagini_str.items()}
 chunks = D.chunk_text(testo, target=chunk)
 
-impronta = (sbobina.name, len(testo), chunk)
+impronta = (sbobina.name, len(testo), chunk, modalita)
 if st.session_state.impronta != impronta:          # sbobina o taglio cambiati: si riparte
     st.session_state.update(impronta=impronta, blocchi=[], docx=None)
 
@@ -227,7 +238,8 @@ if st.button(etichetta, type="primary", use_container_width=True, disabled=not a
 
     opzioni = {"modello": modello, "indice": indice, "capitoli": capitoli,
                "numeri": numeri, "firma": D.FIRMA, "pausa": pausa,
-               "cartella_immagini": cartella_immagini, "api_key": api_key}
+               "cartella_immagini": cartella_immagini, "api_key": api_key,
+               "modalita": modalita}
 
     st.markdown(ANIMAZIONE, unsafe_allow_html=True)   # scritta una volta: non riparte a ogni blocco
     barra = st.progress(fatti / len(chunks), text=f"{fatti} / {len(chunks)} blocchi")
@@ -237,6 +249,12 @@ if st.button(etichetta, type="primary", use_container_width=True, disabled=not a
 
     if st.session_state.blocchi:
         markdown = "\n\n".join(st.session_state.blocchi)
+        if D.MODALITA[modalita]["consolida"] and not problema:
+            with st.spinner("Fondo gli appunti in un documento unico…"):
+                try:
+                    markdown = st.session_state.worker.consolida(markdown)
+                except Exception as err:  # noqa: BLE001
+                    st.warning(f"Fusione non riuscita ({err}): tengo gli appunti grezzi.")
         with st.spinner("Impagino il Word…"):
             try:
                 documento, n_capitoli = costruisci_docx(
@@ -257,11 +275,11 @@ if st.button(etichetta, type="primary", use_container_width=True, disabled=not a
 if st.session_state.docx:
     nome = Path(sbobina.name).stem
     st.download_button("⬇️  Scarica la dispensa (.docx)", st.session_state.docx,
-                       file_name=f"{nome}_dispensa.docx", use_container_width=True,
+                       file_name=f"{nome}_{modalita}.docx", use_container_width=True,
                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
     st.download_button("⬇️  Scarica il testo grezzo (.md)",
                        "\n\n".join(st.session_state.blocchi).encode("utf-8"),
-                       file_name=f"{nome}_dispensa.md", use_container_width=True)
+                       file_name=f"{nome}_{modalita}.md", use_container_width=True)
     if st.session_state.get("capitoli"):
         st.caption(f"{st.session_state.capitoli} capitoli. "
                    "In Word, se l'indice è vuoto: clic destro sull'indice → «Aggiorna campo».")
