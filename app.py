@@ -139,17 +139,11 @@ st.title("sbobiNaso 👃")
 st.markdown("""
 In parole povere...
 
-sbobiNaso è uno strumento che, utilizzando **Gemini** (l'AI di Google), prende una sbobina e
+sbobiNaso è un tool che, utilizzando **Gemini** (l'AI di Google), prende una sbobina e
 la rielabora come farebbe uno studente bravo e pazientissimo: frasi intere, paragrafi
 ordinati, un titolo diverso quando cambia argomento, elenchi dove il professore elencava,
 termini importanti in grassetto. Alla fine ti restituisce un documento Word con indice,
 capitoli e numeri di pagina, pronto da stampare.
-
-Una cosa importante: **non riassume**. I riassunti automatici tagliano, e poi va a finire
-che all'esame ti chiedono proprio quello che è stato tagliato fuori dall'AI. E giustamente
-volano tutti i santi del calendario. Per questo sbobiNaso non toglie contenuto, riscrive
-lo stesso identico materiale in una forma più leggibile: il testo che ottieni è lungo
-quanto l'originale, spesso di più.
 
 sbobiNaso è gratuito e lo sarà sempre. Se riscontri bug o c'è qualcosa che cambieresti,
 fammelo sapere!
