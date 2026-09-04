@@ -57,7 +57,7 @@ BACKOFF_CAP = 60.0
 TEMPERATURE = 0.3
 SLEEP_BETWEEN_CALLS = 0.0      # pausa fra una chiamata e l'altra (quota al minuto)
 
-FIRMA = "Dispensa rielaborata da sbobiNaso"   # piè di pagina di ogni pagina
+FIRMA = "Dispensa rielaborata da sbobiNaso AI"   # piè di pagina di ogni pagina
 
 # Rientri degli elenchi (cm). Il segno (pallino o numero) parte da
 # LIST_INDENT_CM - LIST_HANGING_CM, il testo si allinea a LIST_INDENT_CM.
