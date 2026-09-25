@@ -187,8 +187,10 @@ with st.sidebar:
         chunk = st.slider("Caratteri per blocco", 1500, 16000,
                           D.MODALITA[modalita]["chunk"], step=250,
                           help="Blocchi più corti = più fedeltà ai dettagli, più chiamate.")
-        pausa = st.slider("Pausa fra le chiamate (secondi)", 0.0, 10.0, 4.0, step=0.5,
-                          help="Serve a non superare il limite di richieste al minuto.")
+        pausa = st.slider("Pausa fra le chiamate (secondi)", 0.0, 10.0, 1.0, step=0.5,
+                          help="Rallenta per non sforare il limite di richieste al minuto. "
+                               "Ogni secondo qui è un secondo per blocco: su una sbobina "
+                               "lunga si sente. Alzalo solo se vedi errori di traffico.")
 
 sbobina = st.file_uploader("Carica qui la sbobina", type=["txt", "md", "docx", "pdf"],
                            help="Da Word e PDF vengono estratte anche le immagini, "
